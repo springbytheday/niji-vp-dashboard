@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voicepack collection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="app">
+    <div class="header">
+      <div class="header-left">
+        <h1>Voicepack collection</h1>
+        <p>Nijisanji · track your oshi's voice packs</p>
+      </div>
+      <button class="btn-add" id="btn-add">+ Add pack</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="lbl">Total</div>
+        <div class="val" id="s-total">—</div>
+      </div>
+      <div class="stat owned-stat">
+        <div class="lbl">Owned</div>
+        <div class="val" id="s-owned">—</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Not owned</div>
+        <div class="val" id="s-not">—</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Livers</div>
+        <div class="val" id="s-livers">—</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by title or liver…" />
+      <select id="filter-liver">
+        <option value="">All livers</option>
+      </select>
+      <select id="filter-owned">
+        <option value="">All</option>
+        <option value="owned">Owned</option>
+        <option value="not-owned">Not owned</option>
+      </select>
+    </div>
+
+    <div class="type-tabs">
+      <button class="tab active" data-type="">All types</button>
+      <button class="tab" data-type="monthly">Monthly</button>
+      <button class="tab" data-type="birthday">Birthday</button>
+      <button class="tab" data-type="limited">Limited</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <div class="modal-header">
+        <h2 id="modal-heading">Edit voicepack</h2>
+        <button class="close-btn" id="modal-close" aria-label="Close">×</button>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="f-en">Title — English</label>
+          <input type="text" id="f-en" placeholder="English title" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="f-jp">Title — Japanese</label>
+          <input type="text" id="f-jp" placeholder="日本語タイトル" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="f-liver">Liver</label>
+          <input type="text" id="f-liver" placeholder="e.g. Sakayori Soma" autocomplete="off" list="liver-list" />
+          <datalist id="liver-list"></datalist>
+        </div>
+        <div class="field">
+          <label for="f-type">Type</label>
+          <select id="f-type">
+            <option value="monthly">Monthly</option>
+            <option value="birthday">Birthday</option>
+            <option value="limited">Limited</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-date">Release date</label>
+        <input type="date" id="f-date" />
+      </div>
+
+      <div class="field">
+        <label for="f-notes">Notes</label>
+        <textarea id="f-notes" placeholder="Any notes about this voicepack…"></textarea>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="tlbl">Owned</div>
+          <div class="tsub">Mark this pack as purchased</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="f-owned" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-delete" id="btn-delete" style="display:none">Delete</button>
+        <span class="spacer"></span>
+        <button class="btn-cancel" id="btn-cancel">Cancel</button>
+        <button class="btn-save" id="btn-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
