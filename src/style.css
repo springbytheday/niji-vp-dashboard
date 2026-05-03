@@ -21,6 +21,7 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --font: 'DM Sans', sans-serif;
+  --font-jp: 'M PLUS Rounded 1c', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
 
@@ -258,7 +259,7 @@ body {
 .card-jp {
   font-size: 11px;
   color: var(--text-2);
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .card-date {

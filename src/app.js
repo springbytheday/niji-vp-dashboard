@@ -1,13 +1,16 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8CPk_LC7oF1oOxqwAQkT1wpztmXVG1HnxXIoz6cC1Qh8C4900zUkK3QQoHgQoVKrFxQ/exec';
 
+// Remove the hardcoded LIVER_COLORS const entirely
+let liverColors = {}; // now dynamic
+
 function load() {
   const callbackName = 'jsonpCallback_' + Date.now();
-
   const script = document.createElement('script');
   script.src = `${SCRIPT_URL}?callback=${callbackName}`;
 
   window[callbackName] = function(data) {
     packs = data.packs;
+    liverColors = data.liverColors || {};
     nextId = packs.length ? Math.max(...packs.map(p => p.id)) + 1 : 1;
     document.body.removeChild(script);
     delete window[callbackName];
@@ -37,11 +40,6 @@ async function save(action, pack) {
 }
 
 
-const LIVER_COLORS = {
-  'Sakayori Soma': '#BA6EA5',
-  'Koyanagi Rou':'#5A5FAA'
-}
-
 /* ── State ── */
 let packs = [];
 let nextId = 1;
@@ -50,8 +48,9 @@ let editingId = null;
 
 /* ── Helpers ── */
 function liverColor(name) {
-  if (LIVER_COLORS[name]) return LIVER_COLORS[name];
+  if (liverColors[name]) return liverColors[name];
   if (!name) return '#888';
+  // Auto-generate a consistent color from the name as fallback
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) | 0;
   return `hsl(${Math.abs(h) % 360},42%,52%)`;
