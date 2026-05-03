@@ -91,12 +91,14 @@ function showToast(msg) {
 /* ── Filter & render ── */
 function getFiltered() {
   const q      = document.getElementById('search').value.toLowerCase();
-  const liver  = document.getElementById('filter-liver').value;
+  const liver = document.getElementById('filter-liver').value;
+  const store  = document.getElementById('filter-store').value;
   const sortBy = document.getElementById('sort-by').value;
 
   let result = packs.filter(p => {
     if (activeType && p.type !== activeType) return false;
     if (liver && p.liver !== liver) return false;
+    if (store && p.store !== store) return false;
     if (q && !p.en.toLowerCase().includes(q) && !p.jp.includes(q) && !p.liver.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -312,7 +314,6 @@ document.getElementById('btn-save').addEventListener('click', async () => {
 document.getElementById('btn-delete').addEventListener('click', async () => {
   if (editingId === null) return;
   packs = packs.filter(p => p.id !== editingId);
-  packs = packs.filter(p => p.id !== editingId);
   await save('delete', { id: editingId });
   closeModal();
   render();
@@ -322,6 +323,7 @@ document.getElementById('btn-delete').addEventListener('click', async () => {
 document.getElementById('btn-add').addEventListener('click', () => openModal(null));
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filter-liver').addEventListener('change', render);
+document.getElementById('filter-store').addEventListener('change', render);
 document.getElementById('sort-by').addEventListener('change', render);
 
 document.querySelectorAll('.tab').forEach(tab => {
