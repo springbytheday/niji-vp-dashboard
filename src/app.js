@@ -64,6 +64,14 @@ function badgeLabel(t) {
   return t === 'monthly' ? 'Monthly' : t === 'birthday' ? 'Birthday' : 'Limited';
 }
 
+function storeBadgeClass(store) {
+  return store === 'EN' ? 'badge-en' : store === 'JP' ? 'badge-jp' : '';
+}
+
+function storeBadgeLabel(store) {
+  return store === 'EN' ? 'EN Store' : store === 'JP' ? 'JP Store' : '';
+}
+
 function fmtDate(d) {
   if (!d) return '';
   const [y, m, dy] = d.split('-');
@@ -82,24 +90,32 @@ function showToast(msg) {
 
 /* ── Filter & render ── */
 function getFiltered() {
-  const q     = document.getElementById('search').value.toLowerCase();
-  const liver = document.getElementById('filter-liver').value;
-  const owned = document.getElementById('filter-owned').value;
+  const q      = document.getElementById('search').value.toLowerCase();
+  const liver  = document.getElementById('filter-liver').value;
+  const sortBy = document.getElementById('sort-by').value;
 
-  return packs.filter(p => {
+  let result = packs.filter(p => {
     if (activeType && p.type !== activeType) return false;
     if (liver && p.liver !== liver) return false;
-    if (owned === 'owned' && !p.owned) return false;
-    if (owned === 'not-owned' && p.owned) return false;
     if (q && !p.en.toLowerCase().includes(q) && !p.jp.includes(q) && !p.liver.toLowerCase().includes(q)) return false;
     return true;
   });
+
+  if (sortBy === 'date-asc') {
+    result.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  } else if (sortBy === 'date-desc') {
+    result.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  } else if (sortBy === 'title-asc') {
+    result.sort((a, b) => a.en.localeCompare(b.en));
+  } else if (sortBy === 'title-desc') {
+    result.sort((a, b) => b.en.localeCompare(a.en));
+  }
+
+  return result;
 }
 
 function updateStats() {
   document.getElementById('s-total').textContent  = packs.length;
-  document.getElementById('s-owned').textContent  = packs.filter(p => p.owned).length;
-  document.getElementById('s-not').textContent    = packs.filter(p => !p.owned).length;
   document.getElementById('s-livers').textContent = new Set(packs.map(p => p.liver)).size;
 }
 
@@ -136,7 +152,7 @@ function render() {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="card ${p.owned ? 'owned' : 'not-owned'}" data-id="${p.id}" tabindex="0" role="button" aria-label="Edit ${p.en}">
+    <div class="card" data-id="${p.id}" tabindex="0" role="button" aria-label="Edit ${p.en}">
       <div class="card-liver">
         <span class="liver-dot" style="background:${liverColor(p.liver)}"></span>
         ${p.liver}
@@ -146,14 +162,16 @@ function render() {
       ${p.date  ? `<div class="card-date">${fmtDate(p.date)}</div>` : ''}
       ${p.notes ? `<div class="card-notes">${p.notes}</div>` : ''}
       <div class="card-footer">
-        <span class="badge ${badgeClass(p.type)}">${badgeLabel(p.type)}</span>
-        <span class="${p.owned ? 'owned-pill' : 'not-owned-pill'}">${p.owned ? '✓ owned' : 'not owned'}</span>
+        <div style="display:flex;gap:4px">
+          <span class="badge ${badgeClass(p.type)}">${badgeLabel(p.type)}</span>
+          ${p.store ? `<span class="badge ${storeBadgeClass(p.store)}">${storeBadgeLabel(p.store)}</span>` : ''}
+        </div>
       </div>
     </div>
   `).join('');
 
   grid.querySelectorAll('.card').forEach(c => {
-    const open = () => openModal(parseInt(c.dataset.id));
+    const open = () => openModal(Number(c.dataset.id));
     c.addEventListener('click', open);
     c.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
@@ -162,31 +180,91 @@ function render() {
 }
 
 /* ── Modal ── */
+function setModalMode(mode) {
+  const isEdit = mode === 'edit';
+  document.getElementById('view-mode').style.display = isEdit ? 'none' : '';
+  document.getElementById('edit-mode').style.display = isEdit ? '' : 'none';
+  document.getElementById('btn-save').style.display  = isEdit ? '' : 'none';
+  document.getElementById('btn-delete').style.display = isEdit && editingId !== null ? '' : 'none';
+  document.getElementById('btn-cancel').textContent  = isEdit ? 'Cancel' : 'Close';
+  document.getElementById('btn-edit-mode').style.display = isEdit ? 'none' : '';
+}
+
 function openModal(id) {
   editingId = id;
   const isNew = id === null;
   const p = isNew
     ? { en: '', jp: '', liver: '', type: 'monthly', owned: false, date: '', notes: '' }
-    : packs.find(x => x.id === id);
+    : packs.find(x => Number(x.id) === Number(id));
 
-  document.getElementById('modal-heading').textContent    = isNew ? 'Add voicepack' : 'Edit voicepack';
-  document.getElementById('f-en').value                   = p.en;
-  document.getElementById('f-jp').value                   = p.jp;
-  document.getElementById('f-liver').value                = p.liver;
-  document.getElementById('f-type').value                 = p.type;
-  document.getElementById('f-date').value                 = p.date || '';
-  document.getElementById('f-notes').value                = p.notes || '';
-  document.getElementById('f-owned').checked              = p.owned;
-  document.getElementById('btn-delete').style.display     = isNew ? 'none' : '';
+  console.log('clicked id:', id, '| type:', typeof id);
+  console.log('packs ids:', packs.map(x => ({ id: x.id, type: typeof x.id })));
+  console.log('pack found:', p);
+  
+  // Populate view mode
+  document.getElementById('v-liver').textContent  = p.liver;
+  document.getElementById('v-en').textContent     = p.en;
+  document.getElementById('v-jp').textContent     = p.jp;
 
+  const vBadge = document.getElementById('v-badge');
+  vBadge.textContent  = badgeLabel(p.type);
+  vBadge.className    = `badge ${badgeClass(p.type)}`;
+
+  const dateRow = document.getElementById('v-date-row');
+  dateRow.style.display = p.date ? '' : 'none';
+  document.getElementById('v-date').textContent = fmtDate(p.date);
+
+  const notesRow = document.getElementById('v-notes-row');
+  notesRow.style.display = p.notes ? '' : 'none';
+  document.getElementById('v-notes').textContent = p.notes;
+
+  const vStore = document.getElementById('v-store-badge');
+  if (p.store) {
+    vStore.textContent  = storeBadgeLabel(p.store);
+    vStore.className    = `badge ${storeBadgeClass(p.store)}`;
+    vStore.style.display = '';
+  } else {
+    vStore.style.display = 'none';
+  } 
+
+  // Populate edit mode
+  document.getElementById('f-en').value      = p.en;
+  document.getElementById('f-jp').value      = p.jp;
+  document.getElementById('f-liver').value   = p.liver;
+  document.getElementById('f-type').value    = p.type;
+  document.getElementById('f-date').value    = p.date || '';
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('f-store').value = p.store || '';
+
+  // New packs go straight to edit, existing ones show view first
+  setModalMode(isNew ? 'edit' : 'view');
+
+  document.getElementById('modal-heading').textContent = isNew ? 'Add voicepack' : p.en;
   document.getElementById('overlay').classList.add('open');
-  document.getElementById('f-en').focus();
 }
 
 function closeModal() {
   document.getElementById('overlay').classList.remove('open');
   editingId = null;
 }
+
+// Switch to edit mode when edit button clicked
+document.getElementById('btn-edit-mode').addEventListener('click', () => {
+  setModalMode('edit');
+  document.getElementById('modal-heading').textContent = 'Edit voicepack';
+  document.getElementById('f-en').focus();
+});
+
+// Cancel goes back to view if editing existing, closes if new
+document.getElementById('btn-cancel').addEventListener('click', () => {
+  if (editingId !== null && document.getElementById('edit-mode').style.display !== 'none') {
+    setModalMode('view');
+    const p = packs.find(x => x.id === editingId);
+    document.getElementById('modal-heading').textContent = p.en;
+  } else {
+    closeModal();
+  }
+});
 
 /* ── Event listeners ── */
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -208,7 +286,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     type:  document.getElementById('f-type').value,
     date:  document.getElementById('f-date').value,
     notes: document.getElementById('f-notes').value.trim(),
-    owned: document.getElementById('f-owned').checked,
+    store: document.getElementById('f-store').value,
   };
 
   if (!data.en || !data.liver) {
@@ -244,7 +322,7 @@ document.getElementById('btn-delete').addEventListener('click', async () => {
 document.getElementById('btn-add').addEventListener('click', () => openModal(null));
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filter-liver').addEventListener('change', render);
-document.getElementById('filter-owned').addEventListener('change', render);
+document.getElementById('sort-by').addEventListener('change', render);
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {

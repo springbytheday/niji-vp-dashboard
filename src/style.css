@@ -10,6 +10,7 @@
   --surface-2: #f0efe9;
   --border: rgba(0, 0, 0, 0.08);
   --border-md: rgba(0, 0, 0, 0.14);
+  --border-darker: rgba(0, 0, 0, 0.64);
   --text: #1a1917;
   --text-2: #6b6a65;
   --text-3: #9e9d98;
@@ -220,17 +221,8 @@ body {
 }
 
 .card:hover {
-  border-color: var(--border-md);
+  border-color: var(--border-darker);
   transform: translateY(-1px);
-}
-
-.card.owned {
-  border-left: 2.5px solid var(--green);
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-}
-
-.card.not-owned {
-  opacity: 0.52;
 }
 
 .card-liver {
@@ -299,6 +291,9 @@ body {
 .badge-monthly  { background: #e6f1fb; color: #185fa5; }
 .badge-birthday { background: #faeeda; color: #854f0b; }
 .badge-limited  { background: #fbeaf0; color: #993556; }
+
+.badge-en { background: #E8F5E9; color: #2E7D32; }
+.badge-jp { background: #FFF3E0; color: #E65100; }
 
 .owned-pill     { font-size: 10px; color: var(--green); }
 .not-owned-pill { font-size: 10px; color: var(--text-3); }
@@ -422,6 +417,65 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: background 0.12s;
+  line-height: 1;
+}
+.icon-btn:hover { background: var(--surface-2); }
+
+/* View mode */
+.view-emoji {
+  font-size: 36px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.view-liver {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+.view-title-en {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.view-title-jp {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 300;
+  margin-bottom: 14px;
+}
+.view-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+.view-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+.view-lbl {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* ── Owned toggle ── */
