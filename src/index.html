@@ -79,13 +79,12 @@
 
       <!-- VIEW MODE -->
       <div id="view-mode">
-        <div class="view-emoji" id="v-emoji"></div>
-        <div class="view-liver" id="v-liver"></div>
-        <div class="view-title-en" id="v-en"></div>
         <div class="view-title-jp" id="v-jp"></div>
+        <div class="view-liver" id="v-liver"></div>
         <div class="view-meta">
           <span class="badge" id="v-badge"></span>
           <span class="badge" id="v-store-badge"></span>
+          <span class="badge" id="v-variant-badge"></span>
         </div>
         <div class="view-row" id="v-date-row">
           <span class="view-lbl">Release date</span>
@@ -136,6 +135,17 @@
               <option value="EN">EN Store</option>
               <option value="JP">JP Store</option>
             </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Variants (add-ons)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="f-variant-ex" value="EX" /> EX
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="f-variant-ex-another" value="EX Another" /> EX Another
+            </label>
           </div>
         </div>
         <div class="field">

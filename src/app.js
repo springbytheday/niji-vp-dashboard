@@ -29,11 +29,13 @@ function load() {
 
 async function save(action, pack) {
   try {
-    await fetch(SCRIPT_URL, {
+    const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
+      //mode: 'no-cors',
       body: JSON.stringify({ action, pack }),
     });
+        const data = await res.json();
+    console.log('Apps Script response:', data);
   } catch (e) {
     console.error('Failed to save to Google Sheets:', e);
   }
@@ -70,6 +72,16 @@ function storeBadgeClass(store) {
 
 function storeBadgeLabel(store) {
   return store === 'EN' ? 'EN Store' : store === 'JP' ? 'JP Store' : '';
+}
+
+function variantBadges(variant) {
+  if (!variant) return '';
+  return variant.split(',').map(v => {
+    v = v.trim();
+    if (v === 'EX') return `<span class="badge badge-ex">EX</span>`;
+    if (v === 'EX Another') return `<span class="badge badge-ex-another">EX Another</span>`;
+    return '';
+  }).join('');
 }
 
 function fmtDate(d) {
@@ -154,14 +166,15 @@ function render() {
   }
 
   grid.innerHTML = filtered.map(p => `
-    <div class="card" data-id="${p.id}" tabindex="0" role="button" aria-label="Edit ${p.en}">
+    <div class="card" data-id="${p.id}" tabindex="0" role="button" aria-label="Edit ${p.en}" style="--liver-color: ${liverColor(p.liver)}">
       <div class="card-liver">
         <span class="liver-dot" style="background:${liverColor(p.liver)}"></span>
         ${p.liver}
       </div>
       <div class="card-en">${p.en}</div>
       <div class="card-jp">${p.jp}</div>
-      ${p.date  ? `<div class="card-date">${fmtDate(p.date)}</div>` : ''}
+      ${p.date ? `<div class="card-date">${fmtDate(p.date)}</div>` : ''}
+      ${p.variant ? `<div class="card-variant-row">${variantBadges(p.variant)}</div>` : ''}
       ${p.notes ? `<div class="card-notes">${p.notes}</div>` : ''}
       <div class="card-footer">
         <div style="display:flex;gap:4px">
@@ -205,8 +218,11 @@ function openModal(id) {
   
   // Populate view mode
   document.getElementById('v-liver').textContent  = p.liver;
-  document.getElementById('v-en').textContent     = p.en;
-  document.getElementById('v-jp').textContent     = p.jp;
+  document.getElementById('v-jp').textContent = p.jp;
+
+  const vVariant = document.getElementById('v-variant-badge');
+  vVariant.innerHTML = variantBadges(p.variant);
+  vVariant.style.display = p.variant ? '' : 'none';
 
   const vBadge = document.getElementById('v-badge');
   vBadge.textContent  = badgeLabel(p.type);
@@ -237,6 +253,10 @@ function openModal(id) {
   document.getElementById('f-date').value    = p.date || '';
   document.getElementById('f-notes').value = p.notes || '';
   document.getElementById('f-store').value = p.store || '';
+
+  const variants = (p.variant || '').split(',').map(v => v.trim());
+  document.getElementById('f-variant-ex').checked         = variants.includes('EX');
+  document.getElementById('f-variant-ex-another').checked = variants.includes('EX Another');
 
   // New packs go straight to edit, existing ones show view first
   setModalMode(isNew ? 'edit' : 'view');
@@ -281,6 +301,10 @@ document.addEventListener('keydown', e => {
 });
 
 document.getElementById('btn-save').addEventListener('click', async () => {
+  const variantParts = [];
+  if (document.getElementById('f-variant-ex').checked)         variantParts.push('EX');
+  if (document.getElementById('f-variant-ex-another').checked) variantParts.push('EX Another');
+  
   const data = {
     en:    document.getElementById('f-en').value.trim(),
     jp:    document.getElementById('f-jp').value.trim(),
@@ -289,7 +313,9 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     date:  document.getElementById('f-date').value,
     notes: document.getElementById('f-notes').value.trim(),
     store: document.getElementById('f-store').value,
+    variant: variantParts.join(', '),
   };
+  console.log('saving data:', data);
 
   if (!data.en || !data.liver) {
     showToast('Title and liver name are required.');
