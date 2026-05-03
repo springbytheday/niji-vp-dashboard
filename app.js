@@ -1,4 +1,7 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8CPk_LC7oF1oOxqwAQkT1wpztmXVG1HnxXIoz6cC1Qh8C4900zUkK3QQoHgQoVKrFxQ/exec';
+const ADMIN_PASSWORD = 'springbytheday';
+let isAdmin = false;
+
 
 // Remove the hardcoded LIVER_COLORS const entirely
 let liverColors = {}; // now dynamic
@@ -41,6 +44,14 @@ async function save(action, pack) {
   }
 }
 
+function setAdminMode(enabled) {
+  isAdmin = enabled;
+  document.getElementById('btn-add').style.display  = enabled ? '' : 'none';
+  document.getElementById('btn-lock').textContent   = enabled ? '🔓' : '🔒';
+  document.getElementById('btn-lock').title         = enabled ? 'Log out' : 'Admin login';
+  // re-render so edit button shows/hides on cards
+  render();
+}
 
 /* ── State ── */
 let packs = [];
@@ -202,7 +213,7 @@ function setModalMode(mode) {
   document.getElementById('btn-save').style.display  = isEdit ? '' : 'none';
   document.getElementById('btn-delete').style.display = isEdit && editingId !== null ? '' : 'none';
   document.getElementById('btn-cancel').textContent  = isEdit ? 'Cancel' : 'Close';
-  document.getElementById('btn-edit-mode').style.display = isEdit ? 'none' : '';
+  document.getElementById('btn-edit-mode').style.display = isAdmin ? '' : 'none';
 }
 
 function openModal(id) {
@@ -301,6 +312,7 @@ document.addEventListener('keydown', e => {
 });
 
 document.getElementById('btn-save').addEventListener('click', async () => {
+  if (!isAdmin) return;
   const variantParts = [];
   if (document.getElementById('f-variant-ex').checked)         variantParts.push('EX');
   if (document.getElementById('f-variant-ex-another').checked) variantParts.push('EX Another');
@@ -338,6 +350,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-delete').addEventListener('click', async () => {
+  if (!isAdmin) return;
   if (editingId === null) return;
   packs = packs.filter(p => p.id !== editingId);
   await save('delete', { id: editingId });
@@ -345,8 +358,33 @@ document.getElementById('btn-delete').addEventListener('click', async () => {
   render();
   showToast('Pack deleted.');
 });
+document.getElementById('btn-lock').addEventListener('click', () => {
+  if (isAdmin) {
+    // log out
+    sessionStorage.removeItem('auth');
+    setAdminMode(false);
+    showToast('Logged out.');
+    return;
+  }
+  const input = prompt('Enter admin password:');
+  if (input === ADMIN_PASSWORD) {
+    sessionStorage.setItem('auth', ADMIN_PASSWORD);
+    setAdminMode(true);
+    showToast('Admin mode enabled.');
+  } else if (input !== null) {
+    showToast('Incorrect password.');
+  }
+});
 
-document.getElementById('btn-add').addEventListener('click', () => openModal(null));
+// persist across page refreshes within the same session
+if (sessionStorage.getItem('auth') === ADMIN_PASSWORD) {
+  setAdminMode(true);
+}
+
+document.getElementById('btn-add').addEventListener('click', () => {
+  if (!isAdmin) return;
+  openModal(null);
+});
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filter-liver').addEventListener('change', render);
 document.getElementById('filter-store').addEventListener('change', render);

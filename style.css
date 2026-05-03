@@ -84,6 +84,19 @@ body {
   opacity: 0.82;
 }
 
+#btn-lock {
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border-md);
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s;
+  line-height: 1;
+}
+
+#btn-lock:hover { background: var(--surface-2); }
+
 /* ── Stats ── */
 .stats {
   display: grid;
